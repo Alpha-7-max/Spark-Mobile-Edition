@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spark Translator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --app-disabled-bg-gray: #e5e7eb;
+            --app-disabled-text-gray: #9ca3af;
+            --app-border-gray: #d1d5db;
+            --copy-button-border-copied: #a78bfa;
+            --pure-white: #ffffff;
+            --placeholder-text-color: #9ca3af;
+            --slate-50: #f8fafc;
+            --heading-text-color: #1e293b;
+
+            --spark-title-indigo: #4f46e5;
+            --spark-icon-hover-color: #ffc107;
+
+            --app-purple-base: var(--spark-title-indigo);
+            --app-purple-hover: #4338ca;
+            --app-purple-active: #3730a3;
+            --app-purple-focus-ring: #818cf8;
+            --app-purple-super-light-bg: #eef2ff;
+            --app-purple-text-light: #6d28d9;
+            --app-purple-base-rgb: 79, 70, 229;
+
+            --app-slate-100: #f1f5f9;
+            --app-slate-700: #334155; /* Original dark slate for text */
+            --app-slate-600: #475569; /* Lighter slate for unselected lang text */
+            --app-slate-200: #e2e8f0;
+            --app-slate-500: #64748b;
+            --app-slate-400: #94a3b8; /* Even lighter slate for copy button hover */
+
+
+            --app-blue-300: #93c5fd;
+            --app-blue-400: #60a5fa; /* For selected lang button background */
+            --app-blue-500: #3b82f6; /* For translate button, title text */
+
+
+            --app-blue-500-shadow: rgba(59, 130, 246, 0.2);
+            --app-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --app-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+
+            --selection-bg-purple: #d1c4e9;
+            --selection-text-purple: #311b92;
+
+            --color-skeleton-base: #e5e7eb;
+            --color-skeleton-highlight: #f3f4f6;
+        }
+
+        body {
+            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+            background-image: linear-gradient(to bottom right, #f0f9ff, #e0f2fe, #eef2ff);
+        }
+
+        .page-container {
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        @media (max-width: 639px) {
+            .page-container {
+                margin-top: 3.5rem;
+            }
+        }
+
+        @media (min-width: 640px) {
+            .page-container {
+                margin-top: 0;
+                padding-top: 2rem;
+                padding-bottom: 2rem;
+                max-width: 1280px;
+            }
+        }
+
+
+        ::selection {
+            background-color: var(--app-blue-500);
+            color: var(--pure-white);
+        }
+        ::-moz-selection {
+            background-color: var(--app-blue-500);
+            color: var(--pure-white);
+        }
+
+        .translator-card {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(0.75rem);
+            border-radius: 0px;
+            border: none;
+            width: 100%;
+        }
+        @media (min-width: 640px) {
+            .translator-card {
+                border-radius: 8px;
+                border: 1px solid var(--app-border-gray);
+            }
+        }
+
+        .text-io-box {
+            border: 1px solid var(--app-border-gray);
+            border-radius: 6px;
+            min-height: 140px;
+            padding: 1rem;
+            color: #1f2937;
+        }
+        @media (min-width: 640px) {
+            .text-io-box {
+                min-height: 180px;
+            }
+        }
+
+
+        .input-textarea {
+            background-color: var(--pure-white);
+            font-size: 0.9375rem;
+            line-height: 1.65;
+            resize: none;
+        }
+        .input-textarea:focus {
+            border-color: var(--app-blue-500);
+            box-shadow: 0 0 0 1px var(--app-blue-500-shadow);
+            outline: none;
+        }
+        .input-textarea::placeholder {
+            color: #6b7280;
+            font-size: 0.9375rem;
+        }
+
+        .output-box {
+            background-color: var(--slate-50);
+            font-size: 0.9375rem;
+            line-height: 1.65;
+            resize: none;
+            color: #374151;
+        }
+        .output-box.is-placeholder-text {
+            color: #6b7280;
+        }
+        .output-box.is-processing {
+            background-color: var(--app-purple-super-light-bg);
+            opacity: 0.8;
+            color: var(--app-purple-base);
+        }
+
+        .skeleton-wrapper {
+            width: 100%;
+            height: 100%;
+            min-height: 100px;
+        }
+        @media (min-width: 640px) {
+            .skeleton-wrapper {
+                min-height: 120px;
+            }
+        }
+
+        .skeleton-line {
+            height: 12px;
+            margin-bottom: 8px;
+            background: var(--color-skeleton-base);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .skeleton-line:last-child {
+            margin-bottom: 0;
+            width: 80%;
+        }
+
+        .skeleton-line:nth-child(2) {
+            width: 94%;
+        }
+
+        .skeleton-line:nth-child(3) {
+            width: 88%;
+        }
+
+        .skeleton-line::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                        var(--color-skeleton-base),
+                        var(--color-skeleton-highlight),
+                        var(--color-skeleton-base));
+            animation: shimmer 1.5s infinite;
+            transform: translateX(-100%);
+        }
+
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .lang-option input[type="radio"] {
+            opacity: 0; width: 0; height: 0; position: absolute;
+        }
+        .lang-option label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--app-border-gray);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.75rem;
+            font-weight: 600;
+            /* MODIFIED: Lighter text color for unselected language button */
+            color: var(--app-slate-600);
+            background-color: var(--app-slate-100);
+            line-height: 1.5;
+            box-shadow: var(--app-shadow-sm);
+        }
+         @media (min-width: 640px) {
+            .lang-option label {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+        .lang-option label:hover {
+            background-color: var(--app-slate-200);
+        }
+        .lang-option input[type="radio"]:checked + label {
+            /* MODIFIED: Slightly darker blue for selected language button background */
+            background-color: var(--app-blue-400);
+            border-color: var(--app-blue-400);
+            color: var(--pure-white); /* Text remains white */
+             /* Shadow color (rgba(96, 165, 250, 0.35)) matches --app-blue-400 */
+            box-shadow: 0 1px 3px 0 rgba(96, 165, 250, 0.35), var(--app-shadow-sm);
+        }
+        .lang-option input[type="radio"]:focus-visible + label {
+            outline: 2px solid var(--app-purple-focus-ring);
+            outline-offset: 2px;
+        }
+
+        .translate-action-button {
+            background-image: linear-gradient(to right, var(--app-blue-400), var(--app-blue-500));
+            box-shadow: var(--app-shadow-sm);
+            color: #ffffff;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: opacity 0.2s ease, transform 0.1s ease, background-image 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+            font-size: 0.875rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .translate-action-button:active:not(:disabled) {
+             transform: translateY(0px);
+        }
+        .translate-action-button:focus-visible {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--app-blue-400);
+        }
+        .translate-action-button:disabled {
+            background-image: linear-gradient(to right, var(--app-blue-400), var(--app-blue-500));
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+            .translate-action-button.is-loading {
+                animation: subtlePulse 1.5s infinite ease-in-out;
+                cursor: wait;
+            }
+            @keyframes subtlePulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.7; }
+            }
+            .translate-action-button .fa-circle-notch.fa-spin { }
+
+            .translate-action-button:hover:not(:disabled) {
+                box-shadow: var(--app-shadow-md);
+                background-image: linear-gradient(to right, var(--app-blue-500), var(--app-blue-400));
+            }
+
+
+            .error-banner {
+                background-color: #fef7f7;
+                border: 1px solid #f28b82;
+                border-left-width: 4px;
+                border-left-color: #d93025;
+                color: #442f2e;
+                border-radius: 4px;
+            }
+            .error-banner .icon { color: #d93025; }
+            .error-banner .font-bold { color: #b0261c; font-weight: 500; }
+            .error-banner p { color: #5c3b3a; }
+
+            #copyButton {
+                transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, opacity 0.2s ease-in-out, transform 0.1s ease, box-shadow 0.15s ease-in-out;
+                font-size: 0.75rem;
+                padding: 0.15rem 0.4rem;
+                border: none;
+                outline: none !important;
+                background-color: var(--app-slate-500);
+                color: #ffffff;
+                box-shadow: var(--app-shadow-sm);
+            }
+            #copyButton:hover:not(:disabled) {
+                background-color: var(--app-slate-600);
+                color: #ffffff;
+                transform: translateY(-1px);
+                box-shadow: var(--app-shadow-md);
+            }
+            #copyButton:active:not(:disabled) {
+                 transform: translateY(0px);
+            }
+            #copyButton:focus-visible {
+                 outline: 2px solid transparent;
+                 outline-offset: 2px;
+                 box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #94a3b8;
+            }
+
+            #copyButton:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            #copyButton.is-copied {
+                background-color: #0ea5e9;
+                border-color: transparent;
+                color: #ffffff;
+                box-shadow: var(--app-shadow-sm);
+            }
+             #copyButton.is-copied:hover:not(:disabled) {
+                background-color: #0284c7;
+                color: #ffffff;
+                transform: translateY(-1px);
+                box-shadow: var(--app-shadow-md);
+            }
+            #copyButton.is-copied:active:not(:disabled) {
+                 transform: translateY(0px);
+            }
+            #copyButton.is-copied:focus-visible {
+                 outline: 2px solid transparent;
+                 outline-offset: 2px;
+                 box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #38bdf8;
+            }
+            #copyButtonIconContainer i {
+                font-size: 0.625rem;
+                line-height: 1;
+                vertical-align: middle;
+                transition: color 0.15s ease-in-out;
+            }
+            #copyButton:hover:not(:disabled) #copyButtonIconContainer i,
+            #copyButton.is-copied #copyButtonIconContainer i,
+            #copyButton.is-copied:hover:not(:disabled) #copyButtonIconContainer i {
+                color: #ffffff;
+            }
+
+            .clear-input-button {
+                transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+                /* MODIFIED: Further reduced font size and padding */
+                font-size: 0.75rem;
+                padding: 0.15rem 0.35rem;
+            }
+            .clear-input-button:hover:not(:disabled) {
+                background-color: var(--app-slate-200);
+                color: var(--app-blue-500);
+            }
+            .clear-input-button:focus-visible {
+                outline: 1px solid var(--app-purple-focus-ring);
+                outline-offset: 1px;
+            }
+            .clear-input-button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .app-footer p { font-size: 0.875rem; color: var(--color-text-muted, #6B7280); }
+
+            .page-main-title {
+                font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+                font-size: 2.25rem;
+                font-weight: 800;
+                color: #1e40af;
+                line-height: 1.2;
+                text-align: center;
+                letter-spacing: -0.025em;
+                position: fixed;
+                top: 1.5rem;
+                left: 0;
+                right: 0;
+                z-index: 10;
+            }
+            .page-main-title .logo-icon {
+                color: #facc15;
+                margin-right: 0.6rem;
+                font-size: 2.25rem;
+                vertical-align: middle;
+                display: inline-block;
+                transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.3s ease;
+            }
+
+            @media (max-width: 639px) {
+                 .page-main-title {
+                     font-size: 1.75rem;
+                     top: 1rem;
+                 }
+                 .page-main-title .logo-icon {
+                     font-size: 1.75rem;
+                     margin-right: 0.5rem;
+                 }
+            }
+
+            @media (min-width: 640px) {
+                 .page-main-title {
+                     font-size: 2.5rem;
+                     position: static;
+                     margin-bottom: 2rem;
+                 }
+                 .page-main-title .logo-icon {
+                     font-size: 2.5rem;
+                     margin-right: 0.75rem;
+                 }
+            }
+
+            .page-main-title:hover .logo-icon {
+                transform: rotate(-20deg) scale(1.15);
+                color: #fde047;
+            }
+            .text-indigo-500-spark { color: var(--app-blue-500); }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen pt-6 sm:pt-8 pb-8 sm:px-4">
+
+    <h1 class="page-main-title">
+        <i class="fas fa-bolt logo-icon"></i>Spark<span class="font-semibold text-indigo-500-spark">Translate</span>
+    </h1>
+
+    <div class="page-container w-full">
+        <div class="translator-card w-full max-w-2xl mx-auto p-3 sm:p-6">
+            <div class="space-y-6">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <button id="pasteButton" title="Paste from clipboard" class="clear-input-button rounded-md text-gray-400 font-medium">
+                                <i class="fas fa-paste mr-1"></i>Paste
+                            </button>
+                        </div>
+                        <div>
+                            <button id="clearInputButton" title="Clear input text" class="clear-input-button rounded-md text-gray-500 font-medium">
+                                <i class="fas fa-times mr-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="inputText" rows="4" class="w-full input-textarea text-io-box rounded-md" placeholder="Type or paste text here..."></textarea>
+                </div>
+
+                <div class="flex flex-row items-center justify-between gap-x-3 py-1">
+                    <div class="flex space-x-2">
+                        <div class="lang-option">
+                            <input type="radio" name="targetLanguage" id="langEnglish" value="English" checked>
+                            <label for="langEnglish">English</label>
+                        </div>
+                        <div class="lang-option">
+                            <input type="radio" name="targetLanguage" id="langRomanUrdu" value="Roman Urdu">
+                            <label for="langRomanUrdu">Roman Urdu</label>
+                        </div>
+                    </div>
+
+                    <button id="translateButton" class="translate-action-button flex items-center justify-center">
+                        <i id="translateButtonIcon" class="fas fa-language mr-1 sm:mr-1.5 opacity-90"></i>
+                        <span id="translateButtonText">Translate</span>
+                    </button>
+                </div>
+
+                <section>
+                    <div class="flex justify-end items-center mb-2">
+                        <button id="copyButton" title="Copy to clipboard"
+                                class="flex items-center rounded-md text-slate-700 font-medium">
+                            <span id="copyButtonIconContainer" class="mr-0.5">
+                                <i class="far fa-copy"></i>
+                            </span>
+                            <span id="copyButtonTextContainer">Copy</span>
+                        </button>
+                    </div>
+                    <div
+                        id="outputText"
+                        class="output-box text-io-box w-full text-slate-800 shadow-sm rounded-md overflow-y-auto whitespace-pre-wrap"
+                        aria-live="polite"
+                        aria-label="Translated text output area"
+                        readonly>
+                    </div>
+                </section>
+
+
+                <div id="errorMessage" class="error-banner p-3 hidden rounded-md" role="alert">
+                    <div class="flex">
+                        <div class="flex-shrink-0 pt-0.5">
+                            <i class="fas fa-exclamation-circle fa-md icon"></i>
+                        </div>
+                        <div class="ml-2.5">
+                            <h3 class="text-sm font-medium text-red-700">Translation Error</h3>
+                            <p id="errorMessageText" class="text-sm text-red-600 mt-1">Error messages will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center my-8 app-footer">
+        <!-- Footer content removed -->
+    </footer>
+
+    <script>
+        const inputTextElem = document.getElementById('inputText');
+        const outputTextElem = document.getElementById('outputText');
+        const clearInputButton = document.getElementById('clearInputButton');
+        const pasteButton = document.getElementById('pasteButton');
+        const copyButton = document.getElementById('copyButton');
+        const copyButtonIconContainer = document.getElementById('copyButtonIconContainer');
+        const copyButtonTextContainer = document.getElementById('copyButtonTextContainer');
+        const translateButton = document.getElementById('translateButton');
+        const translateButtonText = document.getElementById('translateButtonText');
+        const translateButtonIcon = document.getElementById('translateButtonIcon');
+        const errorMessageContainer = document.getElementById('errorMessage');
+        const errorMessageTextElem = document.getElementById('errorMessageText');
+
+        const initialCopyIconHTML = copyButtonIconContainer.innerHTML;
+        const initialCopyText = copyButtonTextContainer.textContent;
+        const outputPlaceholderText = "Translated text will appear here";
+
+        function hexToRgb(hex) {
+            if (!hex || typeof hex !== 'string' || hex.charAt(0) !== '#') return null;
+            const bigint = parseInt(hex.slice(1), 16);
+            if (isNaN(bigint)) return null;
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return `${r}, ${g}, ${b}`;
+        }
+
+        function adjustTextareaRows() {
+            if (window.innerWidth < 640) {
+                inputTextElem.rows = 4;
+            } else {
+                inputTextElem.rows = 5;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            adjustTextareaRows();
+            try {
+                const appPurpleBaseHex = getComputedStyle(document.documentElement).getPropertyValue('--app-purple-base').trim();
+                 if (appPurpleBaseHex) {
+                    const appPurpleRgb = hexToRgb(appPurpleBaseHex);
+                    if (appPurpleRgb) {
+                         document.documentElement.style.setProperty('--app-purple-base-rgb', appPurpleRgb);
+                    }
+                }
+
+            } catch (e) {
+                console.error("Could not set RGB variables:", e);
+            }
+        });
+
+        window.addEventListener('resize', adjustTextareaRows);
+
+
+        const API_KEY = 'AIzaSyDSF270Y1VJf1fe4G8ZAuw7bOITbAlal74';
+        const MODEL_NAME = 'gemini-2.5-flash-preview-05-20';
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+
+        function updateButtonDisabledStates() {
+            const isInputEmpty = inputTextElem.value.trim() === '';
+            translateButton.disabled = isInputEmpty;
+            clearInputButton.disabled = isInputEmpty;
+
+            const outputContent = outputTextElem.textContent;
+            const isOutputPlaceholder = outputContent === outputPlaceholderText || outputContent === 'Translating...';
+
+            const isOutputEffectivelyEmpty = !outputContent ||
+                                          outputContent.trim() === '' ||
+                                          isOutputPlaceholder;
+            setCopyButtonState(!isOutputEffectivelyEmpty);
+        }
+
+        function setCopyButtonState(enabled) {
+            copyButton.disabled = !enabled;
+            if (!enabled) {
+                copyButtonIconContainer.innerHTML = initialCopyIconHTML;
+                copyButtonTextContainer.textContent = initialCopyText;
+                copyButton.classList.remove('is-copied');
+            }
+        }
+
+        function showSkeletonLoader() {
+            outputTextElem.classList.remove('is-placeholder-text');
+            outputTextElem.innerHTML = '';
+
+            const skeletonWrapper = document.createElement('div');
+            skeletonWrapper.className = 'skeleton-wrapper';
+
+            const numLines = window.innerWidth < 640 ? 3 : 5;
+            for (let i = 0; i < numLines; i++) {
+                const skeletonLine = document.createElement('div');
+                skeletonLine.className = 'skeleton-line';
+                skeletonWrapper.appendChild(skeletonLine);
+            }
+
+            outputTextElem.appendChild(skeletonWrapper);
+        }
+
+        function hideSkeletonLoader() {
+            outputTextElem.classList.remove('is-processing');
+        }
+
+        function setOutputPlaceholder() {
+            hideSkeletonLoader();
+            outputTextElem.innerHTML = '';
+            const placeholderSpan = document.createElement('span');
+            placeholderSpan.textContent = outputPlaceholderText;
+            outputTextElem.appendChild(placeholderSpan);
+            outputTextElem.classList.add('is-placeholder-text');
+            updateButtonDisabledStates();
+        }
+
+        function clearOutputArea() { setOutputPlaceholder(); }
+        function clearError() {
+            errorMessageContainer.classList.add('hidden');
+            errorMessageTextElem.textContent = '';
+        }
+
+        function setOutputText(text, isProcessingOrError = false) {
+            hideSkeletonLoader();
+            outputTextElem.innerHTML = '';
+
+            const contentSpan = document.createElement('span');
+            contentSpan.textContent = text;
+
+            outputTextElem.appendChild(contentSpan);
+
+            outputTextElem.classList.remove('is-placeholder-text');
+            if (text === 'Translating...') {
+                 outputTextElem.classList.add('is-placeholder-text', 'is-processing');
+            } else if (isProcessingOrError || text === outputPlaceholderText) {
+                outputTextElem.classList.add('is-placeholder-text');
+                outputTextElem.classList.remove('is-processing');
+            } else {
+                 outputTextElem.classList.remove('is-processing');
+            }
+
+            const isValidOutput = text && text.trim() !== '' &&
+                                  text !== 'Translating...' &&
+                                  text !== outputPlaceholderText &&
+                                  !text.toLowerCase().includes("translation failed") &&
+                                  !text.toLowerCase().includes("translation blocked") &&
+                                  !text.toLowerCase().includes("translation cancelled");
+
+            setCopyButtonState(isValidOutput);
+            if (isValidOutput) {
+                copyButtonIconContainer.innerHTML = initialCopyIconHTML;
+                copyButtonTextContainer.textContent = initialCopyText;
+                copyButton.classList.remove('is-copied');
+            }
+        }
+
+        inputTextElem.addEventListener('input', () => {
+            updateButtonDisabledStates();
+            if (inputTextElem.value.trim() === '') {
+                clearOutputArea();
+                clearError();
+            }
+        });
+
+        clearInputButton.addEventListener('click', () => {
+            inputTextElem.value = '';
+            inputTextElem.focus();
+            inputTextElem.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+
+        pasteButton.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                inputTextElem.value = text;
+                inputTextElem.focus();
+                inputTextElem.dispatchEvent(new Event('input', { bubbles: true }));
+            } catch (err) {
+                console.error('Failed to read clipboard:', err);
+                 showError('Could not paste text. Browser may not support this or permission denied.');
+            }
+        });
+
+        inputTextElem.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                if (!translateButton.disabled) {
+                    translateButton.click();
+                }
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a') {
+                if (document.activeElement === inputTextElem || document.activeElement === outputTextElem ) {
+                } else if (inputTextElem && inputTextElem.value.length > 0) {
+                     event.preventDefault();
+                    inputTextElem.focus();
+                    inputTextElem.select();
+                }
+            }
+        });
+
+        let currentTranslationAbortController = null;
+        function setLoadingState(isLoading) {
+            if (isLoading) {
+                translateButton.disabled = true;
+                translateButton.classList.add('is-loading');
+                translateButtonText.textContent = "Translating...";
+                if(translateButtonIcon) {
+                    translateButtonIcon.className = 'fas fa-circle-notch fa-spin mr-1 sm:mr-1.5 opacity-90';
+                }
+            } else {
+                translateButton.classList.remove('is-loading');
+                updateButtonDisabledStates();
+                translateButtonText.textContent = "Translate";
+                if(translateButtonIcon) {
+                    translateButtonIcon.className = 'fas fa-language mr-1 sm:mr-1.5 opacity-90';
+                }
+            }
+        }
+
+        async function handleTranslate() {
+            const textToTranslate = inputTextElem.value.trim();
+            const selectedLanguageRadio = document.querySelector('input[name="targetLanguage"]:checked');
+
+            if (!selectedLanguageRadio) {
+                showError('Please select a target language.');
+                return;
+            }
+            const targetLanguage = selectedLanguageRadio.value;
+
+            if (!textToTranslate) {
+                showError('Please enter some text to translate.');
+                inputTextElem.focus();
+                return;
+            }
+
+            if (currentTranslationAbortController) {
+                currentTranslationAbortController.abort();
+            }
+            currentTranslationAbortController = new AbortController();
+            const signal = currentTranslationAbortController.signal;
+
+            setLoadingState(true);
+            clearError();
+            showSkeletonLoader();
+
+            const prompt = `You are an expert multilingual translator. Your primary goal is to provide translations that are highly accurate (aiming for 99% accuracy), natural-sounding, and meticulously preserve the original text's meaning, tone, and nuance. Avoid literal translations if they result in awkward or unnatural phrasing in the target language. Prioritize fluency and contextually appropriate language.
+IMPORTANT: Only return the translated text itself. Do not include any prefixes like "Translated Text:", "Translation:", the original text, or any other extraneous explanations or conversational filler. Just the pure translation.
+If the input text is already in the target language, return the original text.
+If the input text appears to be nonsensical, a random string of characters, or cannot be reliably translated, return a brief, polite message in the target language indicating this, such as (for English target): "The provided text could not be reliably translated."
+
+Translate the following text into ${targetLanguage}:
+${textToTranslate}`;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            temperature: 0.25,
+                            topP: 0.95,
+                            topK: 40
+                        }
+                    }),
+                    signal: signal
+                });
+
+                const responseData = await response.json();
+                 if (signal.aborted) {
+                    setOutputText('Translation cancelled.', true);
+                    return;
+                }
+
+                if (!response.ok) {
+                    let errorMsg = `API Error: ${response.status} ${response.statusText}`;
+                    let message = errorMsg;
+                    if (responseData && responseData.error && responseData.error.message) {
+                        errorMsg = `API Error (${response.status}): ${responseData.error.message}`;
+                        message = responseData.error.message;
+                    }
+
+                    if (response.status === 400 && errorMsg.toLowerCase().includes("api key") && (errorMsg.toLowerCase().includes("not valid") || errorMsg.toLowerCase().includes("invalid"))) {
+                         errorMsg = `API Key Error: The provided API key is not valid or has restrictions. Please check your API key.`;
+                    } else if ((response.status === 404 || response.status === 500 || response.status === 400) && errorMsg.toLowerCase().includes("model")) {
+                        errorMsg = `Model Error: The model '${MODEL_NAME}' could not be found or is not accessible. Please check the model name.`;
+                    } else if (message.includes("User location is not supported")) {
+                         errorMsg = "Location Error: API access from your current location is not supported by the API provider.";
+                    } else if (response.status === 400 && (message.toLowerCase().includes("resource has been exhausted") || message.toLowerCase().includes("quota"))) {
+                         errorMsg = "Quota Error: You have exceeded your API usage quota. Please check your API plan.";
+                    } else if (response.status === 429) {
+                         errorMsg = "Rate Limit Exceeded: Too many requests. Please wait a moment and try again.";
+                    } else {
+                        errorMsg = `Translation service returned an error (${response.status}). Please try again later. Details: ${message}`;
+                    }
+                    throw new Error(errorMsg);
+                }
+
+                if (responseData.candidates && responseData.candidates.length > 0 &&
+                    responseData.candidates[0].content && responseData.candidates[0].content.parts &&
+                    responseData.candidates[0].content.parts.length > 0 &&
+                    typeof responseData.candidates[0].content.parts[0].text === 'string') {
+
+                    const translatedText = responseData.candidates[0].content.parts[0].text.trim();
+                    setOutputText(translatedText);
+
+                } else if (responseData.promptFeedback && responseData.promptFeedback.blockReason) {
+                    const reasonObj = responseData.promptFeedback.blockReason;
+                    const reason = (typeof reasonObj === 'object' && reasonObj.reason) ? reasonObj.reason : (reasonObj || 'Unknown');
+                    let blockDetails = '';
+                    if (responseData.promptFeedback.safetyRatings && responseData.promptFeedback.safetyRatings.length > 0) {
+                        blockDetails = ` Safety issues detected: ${responseData.promptFeedback.safetyRatings.map(r => `${r.category.replace('HARM_CATEGORY_', '')} (${r.probability})`).join(', ')}.`;
+                    }
+                    showError(`Translation blocked by API. Reason: ${reason}.${blockDetails}`);
+                    setOutputText('Translation blocked.', true);
+                } else {
+                    console.error('Unexpected API response structure:', responseData);
+                    showError('Failed to extract translation. The API response format was unexpected.');
+                    setOutputText('Translation failed.', true);
+                }
+
+            } catch (error) {
+                 if (error.name === 'AbortError') {
+                    console.log('Fetch aborted');
+                    setOutputText('Translation cancelled.', true);
+                } else {
+                    console.error('Translation process error:', error);
+                    let detailedErrorMessage = error.message || 'An unexpected error occurred during translation.';
+                    if (error instanceof TypeError && error.message.toLowerCase().includes("failed to fetch")) {
+                         detailedErrorMessage = 'Network Error: Could not connect to the translation service. Please check your internet connection.';
+                    }
+                    showError(detailedErrorMessage);
+                    setOutputText('Translation failed.', true);
+                }
+            } finally {
+                setLoadingState(false);
+                currentTranslationAbortController = null;
+            }
+        }
+
+        translateButton.addEventListener('click', handleTranslate);
+
+        copyButton.addEventListener('click', async () => {
+            if (copyButton.disabled) return;
+
+            const textToCopy = outputTextElem.textContent;
+            if (!textToCopy ||
+                textToCopy === 'Translating...' ||
+                textToCopy === outputPlaceholderText ||
+                textToCopy.toLowerCase().includes("failed") ||
+                textToCopy.toLowerCase().includes("blocked")  ||
+                textToCopy.toLowerCase().includes("cancelled")) {
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+
+                copyButtonIconContainer.innerHTML = initialCopyIconHTML;
+                copyButtonTextContainer.textContent = 'Copied!';
+                copyButton.classList.add('is-copied');
+
+                setTimeout(() => {
+                    copyButtonIconContainer.innerHTML = initialCopyIconHTML;
+                    copyButtonTextContainer.textContent = initialCopyText;
+                    copyButton.classList.remove('is-copied');
+                    updateButtonDisabledStates();
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                copyButtonIconContainer.innerHTML = initialCopyIconHTML;
+                copyButtonTextContainer.textContent = 'Error';
+                copyButton.classList.remove('is-copied');
+                showError('Could not copy text. Browser may not support this or permission denied.');
+
+                setTimeout(() => {
+                     copyButtonIconContainer.innerHTML = initialCopyIconHTML;
+                     copyButtonTextContainer.textContent = initialCopyText;
+                     updateButtonDisabledStates();
+                }, 2000);
+            }
+        });
+
+        function showError(message) {
+            errorMessageTextElem.textContent = message;
+            errorMessageContainer.classList.remove('hidden');
+        }
+
+        setOutputPlaceholder();
+        updateButtonDisabledStates();
+
+    </script>
+</body>
+</html>
