@@ -33,16 +33,16 @@
             --app-purple-base-rgb: 79, 70, 229;
 
             --app-slate-100: #f1f5f9;
-            --app-slate-700: #334155; /* Original dark slate for text */
-            --app-slate-600: #475569; /* Lighter slate for unselected lang text */
+            --app-slate-700: #334155;
+            --app-slate-600: #475569;
             --app-slate-200: #e2e8f0;
             --app-slate-500: #64748b;
-            --app-slate-400: #94a3b8; /* Even lighter slate for copy button hover */
+            --app-slate-400: #94a3b8;
 
 
             --app-blue-300: #93c5fd;
-            --app-blue-400: #60a5fa; /* For selected lang button background */
-            --app-blue-500: #3b82f6; /* For translate button, title text */
+            --app-blue-400: #60a5fa;
+            --app-blue-500: #3b82f6;
 
 
             --app-blue-500-shadow: rgba(59, 130, 246, 0.2);
@@ -75,7 +75,8 @@
         }
         @media (max-width: 639px) {
             .page-container {
-                margin-top: 3.5rem;
+                /* MODIFIED: Further increased margin-top to push container even more down on mobile */
+                margin-top: 7.0rem;
             }
         }
 
@@ -226,7 +227,6 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             font-size: 0.75rem;
             font-weight: 600;
-            /* MODIFIED: Lighter text color for unselected language button */
             color: var(--app-slate-600);
             background-color: var(--app-slate-100);
             line-height: 1.5;
@@ -242,11 +242,9 @@
             background-color: var(--app-slate-200);
         }
         .lang-option input[type="radio"]:checked + label {
-            /* MODIFIED: Slightly darker blue for selected language button background */
             background-color: var(--app-blue-400);
             border-color: var(--app-blue-400);
-            color: var(--pure-white); /* Text remains white */
-             /* Shadow color (rgba(96, 165, 250, 0.35)) matches --app-blue-400 */
+            color: var(--pure-white);
             box-shadow: 0 1px 3px 0 rgba(96, 165, 250, 0.35), var(--app-shadow-sm);
         }
         .lang-option input[type="radio"]:focus-visible + label {
@@ -372,9 +370,8 @@
 
             .clear-input-button {
                 transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-                /* MODIFIED: Further reduced font size and padding */
-                font-size: 0.75rem;
-                padding: 0.15rem 0.35rem;
+                font-size: 0.7rem;
+                padding: 0.1rem 0.3rem;
             }
             .clear-input-button:hover:not(:disabled) {
                 background-color: var(--app-slate-200);
